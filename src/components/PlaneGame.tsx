@@ -21,6 +21,7 @@ export default function PlaneGame() {
   const [throttle, setThrottle] = useState(0);
   const [rotationSpeed, setRotationSpeed] = useState(0);
   const [displaySpeed, setDisplaySpeed] = useState(0);
+  const [activeControlFocus, setActiveControlFocus] = useState<string>('none');
 
   // Constants for speed and rotation control
   const baseMaxSpeed = 2.0; // Speed at level 1
@@ -31,6 +32,19 @@ export default function PlaneGame() {
   // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp') {
+        if (activeControlFocus === 'speed') {
+          setThrottle(prevThrottle => Math.min(prevThrottle + 10, 100));
+        } else if (activeControlFocus === 'rotation') {
+          setRotationSpeed(prevRotationSpeed => Math.min(prevRotationSpeed + 10, 100));
+        }
+      } else if (e.key === 'ArrowDown') {
+        if (activeControlFocus === 'speed') {
+          setThrottle(prevThrottle => Math.max(prevThrottle - 10, 0));
+        } else if (activeControlFocus === 'rotation') {
+          setRotationSpeed(prevRotationSpeed => Math.max(prevRotationSpeed - 10, 0));
+        }
+      }
       keysRef.current[e.key] = true;
     };
 
@@ -45,7 +59,7 @@ export default function PlaneGame() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [activeControlFocus]);
 
   // Game loop
   const gameLoop = useCallback(() => {
@@ -237,6 +251,16 @@ export default function PlaneGame() {
               ))}
             </select>
           </div>
+          <button
+            onClick={() => setActiveControlFocus(activeControlFocus === 'speed' ? 'none' : 'speed')}
+            className={`mt-2 w-full p-2 rounded-lg border ${
+              activeControlFocus === 'speed'
+                ? 'bg-blue-500 text-white border-blue-700'
+                : 'bg-gray-600 text-gray-300 border-gray-500 hover:bg-gray-500'
+            }`}
+          >
+            Control with Arrows
+          </button>
           <p className="text-xs text-gray-300 mt-1">
             Use arrow keys for direction only
           </p>
@@ -257,6 +281,16 @@ export default function PlaneGame() {
               ))}
             </select>
           </div>
+          <button
+            onClick={() => setActiveControlFocus(activeControlFocus === 'rotation' ? 'none' : 'rotation')}
+            className={`mt-2 w-full p-2 rounded-lg border ${
+              activeControlFocus === 'rotation'
+                ? 'bg-blue-500 text-white border-blue-700'
+                : 'bg-gray-600 text-gray-300 border-gray-500 hover:bg-gray-500'
+            }`}
+          >
+            Control with Arrows
+          </button>
           <p className="text-xs text-gray-300 mt-1">
             Controls turn rate with arrow keys
           </p>
@@ -265,6 +299,11 @@ export default function PlaneGame() {
         <div className="text-sm">
           <p>Current Speed: {displaySpeed.toFixed(2)} units/s</p>
           <p>Selected Speed: {((throttle / 10) * baseMaxSpeed).toFixed(2)} units/s</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-300 mt-2">
+            Arrow Keys Control: {activeControlFocus === 'none' ? 'None' : activeControlFocus.charAt(0).toUpperCase() + activeControlFocus.slice(1)}
+          </p>
         </div>
       </div>
     </div>
